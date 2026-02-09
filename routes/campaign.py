@@ -1,0 +1,258 @@
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_current_user_optional, require_admin
+from db import get_db
+from models import CharityCampaign, Donation, User
+
+# Validation limits
+CAMPAIGN_TITLE_MAX_LENGTH = 200
+CAMPAIGN_DESCRIPTION_MAX_LENGTH = 5000
+DONATION_AMOUNT_MIN = 1
+DONATION_AMOUNT_MAX = 999_999_999
+
+router = APIRouter(tags=["campaign"])
+templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/", response_class=HTMLResponse)
+def index(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    campaigns = (
+        db.query(CharityCampaign)
+        .filter(CharityCampaign.status == "open")
+        .order_by(CharityCampaign.created_at.desc())
+        .all()
+    )
+    totals = (
+        db.query(Donation.campaign_id, func.coalesce(func.sum(Donation.amount), 0))
+        .group_by(Donation.campaign_id)
+        .all()
+    )
+    totals_map = {cid: total for cid, total in totals}
+
+    return templates.TemplateResponse(
+        "campaigns_list.html",
+        {
+            "request": request,
+            "user": current_user,
+            "campaigns": campaigns,
+            "totals": totals_map,
+        },
+    )
+
+
+@router.get("/campaigns/{campaign_id}", response_class=HTMLResponse)
+def campaign_detail(
+    campaign_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    campaign = db.get(CharityCampaign, campaign_id)
+    if campaign is None or (
+        campaign.status != "open"
+        and (not current_user or current_user.role != "admin")
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
+        )
+
+    total = (
+        db.query(func.coalesce(func.sum(Donation.amount), 0))
+        .filter(Donation.campaign_id == campaign.id)
+        .scalar()
+    )
+
+    return templates.TemplateResponse(
+        "campaign_detail.html",
+        {
+            "request": request,
+            "user": current_user,
+            "campaign": campaign,
+            "total": total,
+        },
+    )
+
+
+@router.post("/campaigns/{campaign_id}/donate")
+def donate(
+    campaign_id: int,
+    request: Request,
+    amount: int = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if amount < DONATION_AMOUNT_MIN or amount > DONATION_AMOUNT_MAX:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Amount must be between {DONATION_AMOUNT_MIN} and {DONATION_AMOUNT_MAX}.",
+        )
+
+    campaign = db.get(CharityCampaign, campaign_id)
+    if campaign is None or campaign.status != "open":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This campaign is not available for donations.",
+        )
+
+    donation = Donation(
+        user_id=current_user.id,
+        campaign_id=campaign.id,
+        amount=amount,
+    )
+    db.add(donation)
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/campaigns/{campaign_id}",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
+
+
+@router.get("/admin/campaigns", response_class=HTMLResponse)
+def admin_campaigns(
+    request: Request,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    campaigns = (
+        db.query(CharityCampaign)
+        .order_by(CharityCampaign.created_at.desc())
+        .all()
+    )
+    return templates.TemplateResponse(
+        "admin_campaigns.html",
+        {
+            "request": request,
+            "user": current_user,
+            "campaigns": campaigns,
+        },
+    )
+
+
+@router.get("/admin/campaigns/new", response_class=HTMLResponse)
+def new_campaign_form(
+    request: Request,
+    current_user: User = Depends(require_admin),
+):
+    return templates.TemplateResponse(
+        "new_campaign.html",
+        {"request": request, "user": current_user},
+    )
+
+
+@router.post("/admin/campaigns")
+def create_campaign(
+    request: Request,
+    title: str = Form(..., min_length=1, max_length=CAMPAIGN_TITLE_MAX_LENGTH),
+    description: str = Form(
+        ..., min_length=1, max_length=CAMPAIGN_DESCRIPTION_MAX_LENGTH
+    ),
+    target_status: str = Form("open"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    title = title.strip()
+    description = description.strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Title is required."
+        )
+    if not description:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Description is required.",
+        )
+
+    if target_status not in ("open", "closed"):
+        target_status = "open"
+
+    campaign = CharityCampaign(
+        title=title,
+        description=description,
+        created_by_id=current_user.id,
+        status=target_status,
+    )
+    db.add(campaign)
+    db.commit()
+
+    return RedirectResponse(
+        url="/admin/campaigns",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
+
+
+@router.get("/admin/campaigns/{campaign_id}/edit", response_class=HTMLResponse)
+def edit_campaign_form(
+    campaign_id: int,
+    request: Request,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    campaign = db.get(CharityCampaign, campaign_id)
+    if campaign is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
+        )
+
+    return templates.TemplateResponse(
+        "edit_campaign.html",
+        {
+            "request": request,
+            "user": current_user,
+            "campaign": campaign,
+        },
+    )
+
+
+@router.post("/admin/campaigns/{campaign_id}/edit")
+def update_campaign(
+    campaign_id: int,
+    request: Request,
+    title: str = Form(..., min_length=1, max_length=CAMPAIGN_TITLE_MAX_LENGTH),
+    description: str = Form(
+        ..., min_length=1, max_length=CAMPAIGN_DESCRIPTION_MAX_LENGTH
+    ),
+    status_value: str = Form(...),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    title = title.strip()
+    description = description.strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Title is required."
+        )
+    if not description:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Description is required.",
+        )
+    if status_value not in ("open", "closed"):
+        status_value = "open"
+
+    campaign = db.get(CharityCampaign, campaign_id)
+    if campaign is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
+        )
+
+    campaign.title = title
+    campaign.description = description
+    campaign.status = status_value
+
+    db.commit()
+
+    return RedirectResponse(
+        url="/admin/campaigns",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
