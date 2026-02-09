@@ -11,6 +11,14 @@ from auth import get_current_user, get_password_hash, require_admin, verify_pass
 from db import Base, engine, get_db
 from models import CharityCampaign, Donation, User
 
+# Validation limits
+EMAIL_MAX_LENGTH = 64
+PASSWORD_MAX_LENGTH = 255
+CAMPAIGN_TITLE_MAX_LENGTH = 200
+CAMPAIGN_DESCRIPTION_MAX_LENGTH = 5000
+DONATION_AMOUNT_MIN = 1
+DONATION_AMOUNT_MAX = 999_999_999
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -72,10 +80,18 @@ def register_form(request: Request):
 @app.post("/register")
 def register(
     request: Request,
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str = Form(..., max_length=EMAIL_MAX_LENGTH),
+    password: str = Form(..., min_length=1, max_length=PASSWORD_MAX_LENGTH),
     db: Session = Depends(get_db),
 ):
+    email = email.strip().lower()
+    if not email:
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "error": "Email is required."},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         return templates.TemplateResponse(
@@ -90,8 +106,6 @@ def register(
     # First user can be admin for convenience
     is_first_user = db.query(func.count(User.id)).scalar() == 0
     role = "admin" if is_first_user else "user"
-
-    print('passwords from user:', password)
 
     user = User(
         email=email,
@@ -117,10 +131,11 @@ def login_form(request: Request):
 @app.post("/login")
 def login(
     request: Request,
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str = Form(..., max_length=EMAIL_MAX_LENGTH),
+    password: str = Form(..., max_length=PASSWORD_MAX_LENGTH),
     db: Session = Depends(get_db),
 ):
+    email = email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
@@ -178,16 +193,17 @@ def donate(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if amount < DONATION_AMOUNT_MIN or amount > DONATION_AMOUNT_MAX:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Amount must be between {DONATION_AMOUNT_MIN} and {DONATION_AMOUNT_MAX}.",
+        )
+
     campaign = db.get(CharityCampaign, campaign_id)
     if campaign is None or campaign.status != "open":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This campaign is not available for donations.",
-        )
-    if amount <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Amount must be greater than zero.",
         )
 
     donation = Donation(
@@ -261,12 +277,19 @@ def new_campaign_form(
 @app.post("/admin/campaigns")
 def create_campaign(
     request: Request,
-    title: str = Form(...),
-    description: str = Form(...),
+    title: str = Form(..., min_length=1, max_length=CAMPAIGN_TITLE_MAX_LENGTH),
+    description: str = Form(..., min_length=1, max_length=CAMPAIGN_DESCRIPTION_MAX_LENGTH),
     target_status: str = Form("open"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    title = title.strip()
+    description = description.strip()
+    if not title:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Title is required.")
+    if not description:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Description is required.")
+
     if target_status not in ("open", "closed"):
         target_status = "open"
 
@@ -310,12 +333,18 @@ def edit_campaign_form(
 def update_campaign(
     campaign_id: int,
     request: Request,
-    title: str = Form(...),
-    description: str = Form(...),
+    title: str = Form(..., min_length=1, max_length=CAMPAIGN_TITLE_MAX_LENGTH),
+    description: str = Form(..., min_length=1, max_length=CAMPAIGN_DESCRIPTION_MAX_LENGTH),
     status_value: str = Form(...),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    title = title.strip()
+    description = description.strip()
+    if not title:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Title is required.")
+    if not description:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Description is required.")
     if status_value not in ("open", "closed"):
         status_value = "open"
 
