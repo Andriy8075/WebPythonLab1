@@ -3,3 +3,4 @@ db/
 __pycache__/
 .idea/
 .vscode/
+app.db

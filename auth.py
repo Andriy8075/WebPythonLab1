@@ -1,21 +1,18 @@
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Request, status
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.orm import Session
 
 from db import get_db
 from models import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(bytes(password, 'utf-8'), bcrypt.gensalt())
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(bytes(plain_password, 'utf-8'), hashed_password)
 
 
 def get_current_user(
