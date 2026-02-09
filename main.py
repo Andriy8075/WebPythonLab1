@@ -82,7 +82,7 @@ def register(
             "register.html",
             {
                 "request": request,
-                "error": "Користувач з таким email вже існує.",
+                "error": "A user with this email already exists.",
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -90,6 +90,8 @@ def register(
     # First user can be admin for convenience
     is_first_user = db.query(func.count(User.id)).scalar() == 0
     role = "admin" if is_first_user else "user"
+
+    print('passwords from user:', password)
 
     user = User(
         email=email,
@@ -125,7 +127,7 @@ def login(
             "login.html",
             {
                 "request": request,
-                "error": "Невірний email або пароль.",
+                "error": "Incorrect email or password.",
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -178,9 +180,15 @@ def donate(
 ):
     campaign = db.get(CharityCampaign, campaign_id)
     if campaign is None or campaign.status != "open":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Цей збір недоступний для донатів.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This campaign is not available for donations.",
+        )
     if amount <= 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Сума має бути більше нуля.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Amount must be greater than zero.",
+        )
 
     donation = Donation(
         user_id=current_user.id,

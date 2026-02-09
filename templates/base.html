@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Charity App{% endblock %}</title>
@@ -10,17 +10,17 @@
     <h1><a href="/">Charity App</a></h1>
     <nav>
         {% if user %}
-            <span>Ви увійшли як {{ user.email }} ({{ user.role }})</span>
-            <a href="/me/donations">Мої донати</a>
+            <span>Logged in as {{ user.email }} ({{ user.role }})</span>
+            <a href="/me/donations">My donations</a>
             {% if user.role == 'admin' %}
-                <a href="/admin/campaigns">Адмін: збори</a>
+                <a href="/admin/campaigns">Admin: campaigns</a>
             {% endif %}
             <form action="/logout" method="post" style="display:inline;">
-                <button type="submit">Вийти</button>
+                <button type="submit">Log out</button>
             </form>
         {% else %}
-            <a href="/login">Увійти</a>
-            <a href="/register">Реєстрація</a>
+            <a href="/login">Log in</a>
+            <a href="/register">Sign up</a>
         {% endif %}
     </nav>
 </header>

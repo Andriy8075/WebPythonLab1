@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Мої донати{% endblock %}
+{% block title %}My donations{% endblock %}
 
 {% block content %}
-<h2>Мої донати</h2>
+<h2>My donations</h2>
 
 {% if donations %}
     <table>
         <thead>
         <tr>
-            <th>Кампанія</th>
-            <th>Сума</th>
-            <th>Дата</th>
+            <th>Campaign</th>
+            <th>Amount</th>
+            <th>Date</th>
         </tr>
         </thead>
         <tbody>
@@ -25,7 +25,7 @@
         </tbody>
     </table>
 {% else %}
-    <p>Ви ще не робили донатів.</p>
+    <p>You have not made any donations yet.</p>
 {% endif %}
 
 {% endblock %}

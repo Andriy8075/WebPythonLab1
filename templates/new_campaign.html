@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Новий збір{% endblock %}
+{% block title %}New campaign{% endblock %}
 
 {% block content %}
-<h2>Створити новий благодійний збір</h2>
+<h2>Create new charity campaign</h2>
 <form method="post" action="/admin/campaigns">
-    <label>Заголовок:
+    <label>Title:
         <input type="text" name="title" required>
     </label>
-    <label>Опис:
+    <label>Description:
         <textarea name="description" required></textarea>
     </label>
-    <label>Статус:
+    <label>Status:
         <select name="target_status">
-            <option value="open">Відкритий</option>
-            <option value="closed">Закритий</option>
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
         </select>
     </label>
-    <button type="submit">Створити</button>
+    <button type="submit">Create</button>
 </form>
 {% endblock %}
 

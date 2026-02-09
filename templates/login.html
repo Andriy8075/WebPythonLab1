@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Логін{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<h2>Вхід</h2>
+<h2>Login</h2>
 {% if error %}
     <p style="color: red;">{{ error }}</p>
 {% endif %}
@@ -11,10 +11,10 @@
     <label>Email:
         <input type="email" name="email" required>
     </label>
-    <label>Пароль:
+    <label>Password:
         <input type="password" name="password" required>
     </label>
-    <button type="submit">Увійти</button>
+    <button type="submit">Log in</button>
 </form>
 {% endblock %}
 

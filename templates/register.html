@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Реєстрація{% endblock %}
+{% block title %}Sign up{% endblock %}
 
 {% block content %}
-<h2>Реєстрація</h2>
+<h2>Sign up</h2>
 {% if error %}
     <p style="color: red;">{{ error }}</p>
 {% endif %}
@@ -11,10 +11,10 @@
     <label>Email:
         <input type="email" name="email" required>
     </label>
-    <label>Пароль:
+    <label>Password:
         <input type="password" name="password" required>
     </label>
-    <button type="submit">Зареєструватися</button>
+    <button type="submit">Create account</button>
 </form>
 {% endblock %}
 

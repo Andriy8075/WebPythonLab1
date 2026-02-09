@@ -1,15 +1,13 @@
 services:
   app:
-    image: python:3.14.3-bookworm
+    build: .
     ports:
       - 8080:8080
     volumes:
       - .:/var/www
     working_dir: /var/www
-    command: tail -f /dev/null  # Replace with your actual command, e.g., "python app.py" or "uvicorn main:app --host 0.0.0.0 --port 8080"
-    depends_on:
-      db:
-        condition: service_healthy
+    container_name: charity-app
+    command: ["sh","entrypoint.sh"]
     environment:
       - DB_HOST=db
       - DB_PORT=5432

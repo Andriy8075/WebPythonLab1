@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Адмін: збори{% endblock %}
+{% block title %}Admin: campaigns{% endblock %}
 
 {% block content %}
-<h2>Усі збори</h2>
+<h2>All campaigns</h2>
 
-<p><a href="/admin/campaigns/new">Створити новий збір</a></p>
+<p><a href="/admin/campaigns/new">Create new campaign</a></p>
 
 {% if campaigns %}
     <table>
         <thead>
         <tr>
             <th>ID</th>
-            <th>Заголовок</th>
-            <th>Статус</th>
-            <th>Дії</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -22,17 +22,17 @@
             <tr>
                 <td>{{ c.id }}</td>
                 <td>{{ c.title }}</td>
-                <td>{{ "відкритий" if c.status == "open" else "закритий" }}</td>
+                <td>{{ "open" if c.status == "open" else "closed" }}</td>
                 <td>
-                    <a href="/campaigns/{{ c.id }}">Переглянути</a> |
-                    <a href="/admin/campaigns/{{ c.id }}/edit">Редагувати</a>
+                    <a href="/campaigns/{{ c.id }}">View</a> |
+                    <a href="/admin/campaigns/{{ c.id }}/edit">Edit</a>
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 {% else %}
-    <p>Зборів ще немає.</p>
+    <p>No campaigns yet.</p>
 {% endif %}
 
 {% endblock %}

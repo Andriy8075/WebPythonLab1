@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Благодійні збори{% endblock %}
+{% block title %}Charity campaigns{% endblock %}
 
 {% block content %}
-<h2>Відкриті збори</h2>
+<h2>Open campaigns</h2>
 
 {% if campaigns %}
     <ul>
@@ -11,12 +11,12 @@
         <li>
             <h3><a href="/campaigns/{{ c.id }}">{{ c.title }}</a></h3>
             <p>{{ c.description }}</p>
-            <p>Зібрано: {{ totals.get(c.id, 0) }}</p>
+            <p>Collected: {{ totals.get(c.id, 0) }}</p>
         </li>
     {% endfor %}
     </ul>
 {% else %}
-    <p>Поки що немає відкритих зборів.</p>
+    <p>There are no open campaigns yet.</p>
 {% endif %}
 
 {% endblock %}
