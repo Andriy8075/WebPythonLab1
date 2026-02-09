@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Адмін: збори{% endblock %}
+
+{% block content %}
+<h2>Усі збори</h2>
+
+<p><a href="/admin/campaigns/new">Створити новий збір</a></p>
+
+{% if campaigns %}
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Заголовок</th>
+            <th>Статус</th>
+            <th>Дії</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for c in campaigns %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.title }}</td>
+                <td>{{ "відкритий" if c.status == "open" else "закритий" }}</td>
+                <td>
+                    <a href="/campaigns/{{ c.id }}">Переглянути</a> |
+                    <a href="/admin/campaigns/{{ c.id }}/edit">Редагувати</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Зборів ще немає.</p>
+{% endif %}
+
+{% endblock %}
+

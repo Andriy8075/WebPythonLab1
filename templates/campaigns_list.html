@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Благодійні збори{% endblock %}
+
+{% block content %}
+<h2>Відкриті збори</h2>
+
+{% if campaigns %}
+    <ul>
+    {% for c in campaigns %}
+        <li>
+            <h3><a href="/campaigns/{{ c.id }}">{{ c.title }}</a></h3>
+            <p>{{ c.description }}</p>
+            <p>Зібрано: {{ totals.get(c.id, 0) }}</p>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Поки що немає відкритих зборів.</p>
+{% endif %}
+
+{% endblock %}
+

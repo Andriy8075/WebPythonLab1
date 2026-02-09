@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Редагувати збір{% endblock %}
+
+{% block content %}
+<h2>Редагувати збір</h2>
+<form method="post" action="/admin/campaigns/{{ campaign.id }}/edit">
+    <label>Заголовок:
+        <input type="text" name="title" value="{{ campaign.title }}" required>
+    </label>
+    <label>Опис:
+        <textarea name="description" required>{{ campaign.description }}</textarea>
+    </label>
+    <label>Статус:
+        <select name="status_value">
+            <option value="open" {% if campaign.status == "open" %}selected{% endif %}>Відкритий</option>
+            <option value="closed" {% if campaign.status == "closed" %}selected{% endif %}>Закритий</option>
+        </select>
+    </label>
+    <button type="submit">Зберегти</button>
+</form>
+{% endblock %}
+

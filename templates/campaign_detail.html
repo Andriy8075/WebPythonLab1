@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Збір: {{ campaign.title }}{% endblock %}
+
+{% block content %}
+<h2>{{ campaign.title }}</h2>
+<p>{{ campaign.description }}</p>
+<p>Статус: {{ "відкритий" if campaign.status == "open" else "закритий" }}</p>
+<p>Зібрано всього: {{ total }}</p>
+
+{% if user and campaign.status == "open" %}
+    <h3>Задонатити</h3>
+    <form method="post" action="/campaigns/{{ campaign.id }}/donate">
+        <label>Сума:
+            <input type="number" name="amount" min="1" required>
+        </label>
+        <button type="submit">Донатити</button>
+    </form>
+{% elif not user %}
+    <p>Щоб донатити, <a href="/login">увійдіть</a>.</p>
+{% else %}
+    <p>Цей збір закритий для донатів.</p>
+{% endif %}
+
+{% endblock %}
+

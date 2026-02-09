@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Мої донати{% endblock %}
+
+{% block content %}
+<h2>Мої донати</h2>
+
+{% if donations %}
+    <table>
+        <thead>
+        <tr>
+            <th>Кампанія</th>
+            <th>Сума</th>
+            <th>Дата</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for d in donations %}
+            <tr>
+                <td>{{ d.campaign.title }}</td>
+                <td>{{ d.amount }}</td>
+                <td>{{ d.created_at }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Ви ще не робили донатів.</p>
+{% endif %}
+
+{% endblock %}
+
