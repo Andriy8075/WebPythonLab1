@@ -13,8 +13,6 @@ from models import CharityCampaign, Donation, User
 # Validation limits
 CAMPAIGN_TITLE_MAX_LENGTH = 200
 CAMPAIGN_DESCRIPTION_MAX_LENGTH = 5000
-DONATION_AMOUNT_MIN = 1
-DONATION_AMOUNT_MAX = 999_999_999
 
 router = APIRouter(tags=["campaign"])
 templates = Jinja2Templates(directory="templates")
@@ -80,41 +78,6 @@ def campaign_detail(
             "campaign": campaign,
             "total": total,
         },
-    )
-
-
-@router.post("/campaigns/{campaign_id}/donate")
-def donate(
-    campaign_id: int,
-    request: Request,
-    amount: int = Form(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if amount < DONATION_AMOUNT_MIN or amount > DONATION_AMOUNT_MAX:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Amount must be between {DONATION_AMOUNT_MIN} and {DONATION_AMOUNT_MAX}.",
-        )
-
-    campaign = db.get(CharityCampaign, campaign_id)
-    if campaign is None or campaign.status != "open":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This campaign is not available for donations.",
-        )
-
-    donation = Donation(
-        user_id=current_user.id,
-        campaign_id=campaign.id,
-        amount=amount,
-    )
-    db.add(donation)
-    db.commit()
-
-    return RedirectResponse(
-        url=f"/campaigns/{campaign_id}",
-        status_code=status.HTTP_303_SEE_OTHER,
     )
 
 

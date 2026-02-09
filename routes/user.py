@@ -101,27 +101,3 @@ def login(
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
-
-@router.get("/me/donations", response_class=HTMLResponse)
-def my_donations(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    from models import Donation
-
-    donations = (
-        db.query(Donation)
-        .filter(Donation.user_id == current_user.id)
-        .order_by(Donation.created_at.desc())
-        .all()
-    )
-    return templates.TemplateResponse(
-        "my_donations.html",
-        {
-            "request": request,
-            "user": current_user,
-            "donations": donations,
-        },
-    )
