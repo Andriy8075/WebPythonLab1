@@ -1,0 +1,34 @@
+services:
+  app:
+    image: python:3.14.3-bookworm
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/var/www
+    working_dir: /var/www
+    command: tail -f /dev/null  # Replace with your actual command, e.g., "python app.py" or "uvicorn main:app --host 0.0.0.0 --port 8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=charity
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+
+  db:
+    image: postgres:16.11-bookworm
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=charity
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
