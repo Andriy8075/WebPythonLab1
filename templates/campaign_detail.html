@@ -22,5 +22,41 @@
     <p>This campaign is closed for donations.</p>
 {% endif %}
 
+{% if campaign.comments %}
+    <div class="comments-list">
+        {% for comment in campaign.comments|sort(attribute='created_at', reverse=true) %}
+            <div class="comment" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                <p><strong>{{ comment.user.email }}</strong> 
+                   <small>({{ comment.created_at.strftime('%Y-%m-%d %H:%M') }})</small></p>
+                <p>{{ comment.content }}</p>
+                
+                {% if user and (user.id == comment.user_id or user.role == 'admin') %}
+                    <div class="comment-actions">
+                        <a href="/comments/{{ comment.id }}/edit">Edit</a> |
+                        <form action="/comments/{{ comment.id }}/delete" method="post" style="display: inline;">
+                            <button type="submit" onclick="return confirm('Delete this comment?')" style="background: none; border: none; color: red; cursor: pointer; text-decoration: underline;">Delete</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No comments yet.</p>
+{% endif %}
+
+{% if user %}
+    <h4>Add a comment</h4>
+    <form method="post" action="/campaigns/{{ campaign.id }}/comments">
+        <label>
+            <textarea name="content" rows="4" cols="50" maxlength="1000" required></textarea>
+        </label>
+        <br>
+        <button type="submit">Post comment</button>
+    </form>
+{% else %}
+    <p>To leave a comment, please <a href="/login">log in</a>.</p>
+{% endif %}
+
 {% endblock %}
 

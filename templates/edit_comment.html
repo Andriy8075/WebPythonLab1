@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Edit comment{% endblock %}
+
+{% block content %}
+<h2>Edit comment</h2>
+
+<form method="post" action="/comments/{{ comment.id }}/edit">
+    <label>
+        <textarea name="content" rows="4" cols="50" maxlength="1000" required>{{ comment.content }}</textarea>
+    </label>
+    <br>
+    <button type="submit">Save changes</button>
+    <a href="/campaigns/{{ comment.campaign_id }}">Cancel</a>
+</form>
+{% endblock %}

@@ -22,7 +22,7 @@ class User(Base):
     role = Column(String, nullable=False, default="user")  # "user" or "admin"
 
     donations = relationship("Donation", back_populates="user")
-
+    comments = relationship("Comment", back_populates="user")
 
 class CharityCampaign(Base):
     __tablename__ = "charity_campaigns"
@@ -35,7 +35,7 @@ class CharityCampaign(Base):
     status = Column(String, nullable=False, default="open")  # "open" or "closed"
 
     donations = relationship("Donation", back_populates="campaign")
-
+    comments = relationship("Comment", back_populates="campaign")
 
 class Donation(Base):
     __tablename__ = "donations"
@@ -49,3 +49,16 @@ class Donation(Base):
     user = relationship("User", back_populates="donations")
     campaign = relationship("CharityCampaign", back_populates="donations")
 
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    campaign_id = Column(Integer, ForeignKey("charity_campaigns.id"), nullable=False)
+
+    user = relationship("User", back_populates="comments")
+    campaign = relationship("CharityCampaign", back_populates="comments")
