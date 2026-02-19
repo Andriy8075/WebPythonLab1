@@ -48,7 +48,7 @@ def index(
     )
 
 
-@router.get("/campaigns/{campaign_id}", response_class=HTMLResponse)
+@router.get("/campaigns/{campaign_id}", response_class=HTMLResponse, summary="Campaign details")
 def campaign_detail(
     campaign_id: int,
     request: Request,
@@ -81,7 +81,7 @@ def campaign_detail(
     )
 
 
-@router.get("/admin/campaigns", response_class=HTMLResponse)
+@router.get("/admin/campaigns", response_class=HTMLResponse, summary="Admin: list all campaigns")
 def admin_campaigns(
     request: Request,
     current_user: User = Depends(require_admin),
@@ -102,7 +102,7 @@ def admin_campaigns(
     )
 
 
-@router.get("/admin/campaigns/new", response_class=HTMLResponse)
+@router.get("/admin/campaigns/new", response_class=HTMLResponse, summary="Admin: new campaign form")
 def new_campaign_form(
     request: Request,
     current_user: User = Depends(require_admin),
@@ -113,7 +113,7 @@ def new_campaign_form(
     )
 
 
-@router.post("/admin/campaigns")
+@router.post("/admin/campaigns", summary="Admin: create campaign")
 def create_campaign(
     request: Request,
     title: str = Form(..., min_length=1, max_length=CAMPAIGN_TITLE_MAX_LENGTH),
@@ -154,7 +154,7 @@ def create_campaign(
     )
 
 
-@router.get("/admin/campaigns/{campaign_id}/edit", response_class=HTMLResponse)
+@router.get("/admin/campaigns/{campaign_id}/edit", response_class=HTMLResponse, summary="Admin: edit campaign form")
 def edit_campaign_form(
     campaign_id: int,
     request: Request,
@@ -177,7 +177,7 @@ def edit_campaign_form(
     )
 
 
-@router.post("/admin/campaigns/{campaign_id}/edit")
+@router.post("/admin/campaigns/{campaign_id}/edit", summary="Admin: update campaign")
 def update_campaign(
     campaign_id: int,
     request: Request,

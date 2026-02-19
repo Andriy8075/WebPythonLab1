@@ -24,7 +24,7 @@ def register_form(request: Request):
     )
 
 
-@router.post("/register")
+@router.post("/register", summary="Create new user account")
 def register(
     request: Request,
     email: str = Form(..., max_length=EMAIL_MAX_LENGTH),
@@ -66,7 +66,7 @@ def register(
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/login", response_class=HTMLResponse)
+@router.get("/login", response_class=HTMLResponse, summary="Login form")
 def login_form(request: Request):
     return templates.TemplateResponse(
         "login.html",
@@ -74,7 +74,7 @@ def login_form(request: Request):
     )
 
 
-@router.post("/login")
+@router.post("/login", summary="Authenticate user")
 def login(
     request: Request,
     email: str = Form(..., max_length=EMAIL_MAX_LENGTH),
@@ -97,7 +97,7 @@ def login(
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.post("/logout")
+@router.post("/logout", summary="End user session")
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)

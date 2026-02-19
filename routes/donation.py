@@ -37,7 +37,7 @@ def my_donations(
     )
 
 
-@router.post("/campaigns/{campaign_id}/donate")
+@router.post("/campaigns/{campaign_id}/donate", summary="Donate to campaign")
 def donate(
     campaign_id: int,
     request: Request,

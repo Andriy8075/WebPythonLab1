@@ -52,7 +52,7 @@ def create_comment(
     )
 
 
-@router.post("/comments/{comment_id}/delete")
+@router.post("/comments/{comment_id}/delete", summary="Delete comment")
 def delete_comment(
     comment_id: int,
     request: Request,
@@ -83,7 +83,7 @@ def delete_comment(
     )
 
 
-@router.get("/comments/{comment_id}/edit", response_class=HTMLResponse)
+@router.get("/comments/{comment_id}/edit", response_class=HTMLResponse, summary="Edit comment form")
 def edit_comment_form(
     comment_id: int,
     request: Request,
@@ -113,7 +113,7 @@ def edit_comment_form(
     )
 
 
-@router.post("/comments/{comment_id}/edit")
+@router.post("/comments/{comment_id}/edit", summary="Update comment")
 def update_comment(
     comment_id: int,
     request: Request,
